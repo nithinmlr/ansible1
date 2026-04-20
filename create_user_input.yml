@@ -1,0 +1,27 @@
+---
+- name: Create Local User from Input
+  hosts: all
+  become: yes
+  tasks:
+    - name: Ensure input variables are provided
+      ansible.builtin.assert:
+        that:
+          - userName is defined
+          - userPassword is defined
+        fail_msg: "You must provide 'userName' and 'userPassword' via AWX Survey or Extra Vars."
+
+    - name: Create the local user
+      ansible.builtin.user:
+        name: "{{ userName }}"
+        password: "{{ userPassword | password_hash('sha512') }}"
+        groups: wheel
+        append: yes
+        state: present
+
+    - name: Grant sudo access to the wheel group
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^# %wheel\tALL=\(ALL\)\tALL'
+        line: '%wheel\tALL=(ALL)\tALL'
+        validate: '/usr/sbin/visudo -cf %s'
