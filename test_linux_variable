@@ -1,0 +1,20 @@
+---
+- name: Test Linux Connection and Sudo Privileges
+  hosts: all
+  gather_facts: yes  # Verifies SSH connection and basic discovery
+
+  tasks:
+    - name: 1. Verify Connectivity
+      ansible.builtin.ping:
+
+    - name: 2. Verify Sudo (Root) Access
+      ansible.builtin.command: whoami
+      become: yes  # This tests if your "Machine Credential" can escalate to root
+      register: user_output
+
+    - name: 3. Display System Info and Variables
+      ansible.builtin.debug:
+        msg: 
+          - "Connected to: {{ ansible_hostname }}"
+          - "Running as user: {{ user_output.stdout }}"
+          - "Custom Variable Check: {{ test_var | default('No custom var found') }}"
