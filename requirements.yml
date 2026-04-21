@@ -1,0 +1,4 @@
+---
+collections:
+  - name: microsoft.ad
+    # version: "1.10.0"  # Optional: pin to a specific version
