@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: join host to ansible.vagrant with automatic reboot
+    - name: join host to corp.internal with automatic reboot
       microsoft.ad.membership:
         dns_domain_name: corp.internal
         hostname: "{{ inventory_hostname }}"
