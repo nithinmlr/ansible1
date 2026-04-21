@@ -1,9 +1,22 @@
-- name: join host to ansible.vagrant with automatic reboot
-  microsoft.ad.membership:
-    dns_domain_name: corp.internal
-    hostname: mydomainclient
-    domain_admin_user: administrator@corp.internal
-    domain_admin_password: VMware1!
-    domain_ou_path: "OU=provisioningOU,DC=corp,DC=internal"
-    state: domain
-    reboot: true
+---
+- name: Join Windows Host to Active Directory
+  hosts: "{{ target_hosts | default('all') }}"
+  gather_facts: false
+
+  tasks:
+    - name: join host to ansible.vagrant with automatic reboot
+      microsoft.ad.membership:
+        dns_domain_name: corp.internal
+        hostname: "{{ inventory_hostname }}"
+        domain_admin_user: administrator@corp.internal
+        domain_admin_password: VMware1!
+        domain_ou_path: "OU=provisioningOU,DC=corp,DC=internal"
+        state: domain
+        reboot: true
+      register: domain_join_result
+
+    - name: Debug domain join status
+      ansible.builtin.debug:
+        msg: "Reboot was required: {{ domain_join_result.reboot_required }}"
+      when: domain_join_result.reboot_required is defined
+
