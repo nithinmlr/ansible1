@@ -1,0 +1,9 @@
+- name: join host to ansible.vagrant with automatic reboot
+  microsoft.ad.membership:
+    dns_domain_name: corp.internal
+    hostname: mydomainclient
+    domain_admin_user: administrator@corp.internal
+    domain_admin_password: VMware1!
+    domain_ou_path: "OU=provisioningOU,DC=corp,DC=internal"
+    state: domain
+    reboot: true
