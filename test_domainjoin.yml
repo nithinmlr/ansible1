@@ -4,12 +4,12 @@
   gather_facts: false
 
   tasks:
-    - name: join host to corp.internal with automatic reboot
+    - name: Join host to domain with automatic reboot
       microsoft.ad.membership:
-        dns_domain_name: corp.internal
-        domain_admin_user: administrator@corp.internal
-        domain_admin_password: VMware1!
-        domain_ou_path: "OU=provisioningOU,DC=corp,DC=internal"
+        dns_domain_name: "{{ dns_domain_name }}"
+        domain_admin_user: "{{ domain_admin_user }}"
+        domain_admin_password: "{{ domain_admin_password }}"
+        domain_ou_path: "{{ target_ou_path }}"
         state: domain
         reboot: true
       register: domain_join_result
