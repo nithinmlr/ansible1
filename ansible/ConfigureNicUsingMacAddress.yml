@@ -1,0 +1,52 @@
+---
+- name: Configure NIC using MAC address
+  hosts: "{{ target_hosts }}"
+  become: true
+  gather_facts: true
+
+  vars:
+    mac_address: "{{ mac_address | lower }}"
+    ip_address: "{{ ip_address }}"
+    subnet_prefix: "{{ subnet_prefix }}"
+    connection_name: "static-{{ ip_address }}"
+
+  tasks:
+    - name: Find interface name by MAC
+      set_fact:
+        nic_name: "{{ item }}"
+      loop: "{{ ansible_interfaces }}"
+      when:
+        - hostvars[inventory_hostname]['ansible_' + item] is defined
+        - hostvars[inventory_hostname]['ansible_' + item].macaddress is defined
+        - hostvars[inventory_hostname]['ansible_' + item].macaddress | lower == mac_address
+
+    - name: Fail if NIC not found
+      fail:
+        msg: "No interface found for MAC {{ mac_address }}"
+      when: nic_name is not defined
+
+    - name: Print matched interface
+      debug:
+        msg: "Matched MAC {{ mac_address }} to interface {{ nic_name }}. Configuring IP {{ ip_address }}/{{ subnet_prefix }}"
+
+    - name: Create new unique connection with static IP
+      command: >
+        nmcli connection add
+        type ethernet
+        ifname {{ nic_name }}
+        con-name {{ connection_name }}
+        ipv4.addresses {{ ip_address }}/{{ subnet_prefix }}
+        ipv4.method manual
+        autoconnect yes
+
+    - name: Bring new connection up
+      command: nmcli connection up "{{ connection_name }}"
+
+    - name: Show final IP on interface
+      command: ip -br addr show "{{ nic_name }}"
+      register: ip_after
+      changed_when: false
+
+    - name: Print final IP on interface
+      debug:
+        var: ip_after.stdout_lines
