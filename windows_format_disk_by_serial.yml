@@ -2,13 +2,6 @@
 - name: Format Disk by Serial Number (Windows AWX)
   hosts: all
   gather_facts: false
-
-  vars:
-    target_serial: "{{ target_serial | default('') }}"
-    input_drive_letter: "{{ input_drive_letter | default('') }}"
-    input_fstype: "{{ input_fstype | default('NTFS') }}"
-    input_label: "{{ input_label | default('DATA_DRIVE') }}"
-
   tasks:
 
     - name: Validate required input
