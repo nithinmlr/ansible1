@@ -6,15 +6,6 @@
     - name: Gather disk facts
       community.windows.win_disk_facts:
       register: disk_results
-    - name: Debug all disk facts to console
-      ansible.builtin.debug:
-        msg: "Disk {{ item.number }} SERIAL = '{{ item.serial_number }}'"
-      loop: "{{ ansible_facts.disks }}"
-    - name: Save disk facts to a file on the AWX Control Node
-      ansible.builtin.copy:
-        content: "{{ ansible_facts.disks | to_nice_json }}"
-        dest: "/tmp/disk_facts_{{ inventory_hostname }}.json"
-      delegate_to: localhost
     - name: Set disk number based on serial
       set_fact:
         target_disk_number: "{{ item.number }}"
