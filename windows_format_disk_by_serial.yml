@@ -43,7 +43,7 @@
         
     - name: Extract assigned drive letter
       set_fact:
-        assigned_drive_letter: "{{ item.partitions[].drive_letter }}"
+        assigned_drive_letter: "{{ item.drive_letter }}"
       loop: "{{ ansible_facts.disks }}"  
       when: 
         - item.serial_number == target_serial
