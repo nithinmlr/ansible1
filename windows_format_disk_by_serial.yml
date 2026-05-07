@@ -1,56 +1,42 @@
 ---
-- name: Initialize and Format Windows Disk by Serial and RAW Status
+- name: Initialize and Format Windows Disk by Serial
   hosts: all
   gather_facts: false
-  vars:
-    # Default values if not provided via --extra-vars
-    input_fstype: "NTFS"
-    input_label: "New_Volume"
-
   tasks:
     - name: Gather disk facts
       community.windows.win_disk_facts:
-
-    - name: Find target disk (Serial Match + RAW Style)
+      register: disk_results
+    - name: Set disk number based on serial
       set_fact:
-        target_disk: "{{ item }}"
+        target_disk_number: "{{ item.number }}"
       loop: "{{ ansible_facts.disks }}"
+      when: item.serial_number == target_serial
       when: 
-        - item.serial_number | trim == target_serial | trim
+        - item.serial_number == target_serial
         - item.partition_style == 'RAW'
       no_log: true
 
-    - name: Fail if suitable disk not found
+    - name: Fail if disk serial not found
       fail:
-        msg: "Disk with serial {{ target_serial }} was not found or is not in RAW state."
-      when: target_disk is not defined
-
-    - name: Get next available drive letter
-      community.windows.win_drive_letter:
-        state: next_free
-      register: next_letter
-      when: input_drive_letter is not defined
-
-    - name: Set final drive letter
-      set_fact:
-        final_drive_letter: "{{ input_drive_letter | default(next_letter.drive_letter) }}"
+        msg: "Disk with serial {{ target_serial }} was not found on this host."
+      when: target_disk_number is not defined
 
     - name: Initialize disk with GPT
       community.windows.win_initialize_disk:
-        disk_number: "{{ target_disk.number }}"
+        disk_number: "{{ target_disk_number }}"
         style: gpt
         online: true
 
     - name: Create partition using full disk
       community.windows.win_partition:
-        disk_number: "{{ target_disk.number }}"
-        drive_letter: "{{ final_drive_letter }}"
+        disk_number: "{{ target_disk_number }}"
+        drive_letter: "{{ input_drive_letter }}"
         partition_size: -1
         state: present
 
     - name: Format the volume
       community.windows.win_format:
-        drive_letter: "{{ final_drive_letter }}"
+        drive_letter: "{{ input_drive_letter }}"
         file_system: "{{ input_fstype }}"
         new_label: "{{ input_label }}"
         full: false
