@@ -17,7 +17,7 @@
         target_disk_number: "{{ item.number }}"
       loop: "{{ disk_results.ansible_facts.disks }}"
       when: item.serial_number == target_serial
-      no_log: true
+      no_log: false
 
     - name: Fail if disk serial not found
       fail:
