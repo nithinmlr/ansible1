@@ -3,64 +3,55 @@
   hosts: all
   gather_facts: false
   vars:
-    # Ensure variables are defined to avoid "undefined" errors
-
-    input_drive_letter: "{{ input_drive_letter | default('auto') }}"
-
+    input_drive_letter: "{{ input_requested_drive_letter | default('auto') }}"
   tasks:
     - name: Gather disk facts
       community.windows.win_disk_facts:
       register: disk_results
-
     - name: Set disk number based on serial
       set_fact:
         target_disk_number: "{{ item.number }}"
-      loop: "{{ disk_results.ansible_facts.disks }}"
-      when: item.serial_number == target_serial
-      no_log: false
+      loop: "{{ ansible_facts.disks }}"
+      when: 
+        - item.serial_number == target_serial
+        #- item.partition_style == 'RAW'
 
     - name: Fail if disk serial not found
       fail:
-        msg: "Disk with serial {{ target_serial }} was not found."
+        msg: "Disk with serial {{ target_serial }} was not found or is not in RAW state."
       when: target_disk_number is not defined
 
     - name: Initialize disk with GPT
       community.windows.win_initialize_disk:
-        disk_number: "{{ target_disk_number | int }}"
+        disk_number: "{{ target_disk_number }}"
         style: gpt
         online: true
 
     - name: Create partition using full disk
       community.windows.win_partition:
-        disk_number: "{{ target_disk_number | int }}"
-        drive_letter: "{{ (input_drive_letter == 'auto') | ternary(omit, input_drive_letter) }}"
+        disk_number: "{{ target_disk_number }}"
+        drive_letter: "{{ input_drive_letter | default('auto') }}"
         partition_size: -1
         state: present
-
+      register: partition_info
+      
     - name: Re-gather disk facts to get the assigned drive letter
       community.windows.win_disk_facts:
       register: updated_disk_results
-      when: input_drive_letter == 'auto'
-
-    - name: Debug updated disk results for AWX
-      ansible.builtin.debug:
-        msg: "Full Disk Facts for Serial {{ target_serial }}: {{ updated_disk_results.ansible_facts.disks }}"
-      when: input_drive_letter == 'auto'
-
-    - name: Extract assigned drive letter by serial
+      
+    - name: Extract assigned drive letter
       set_fact:
-        assigned_drive_letter: "{{ (updated_disk_results.ansible_facts.disks | selectattr('serial_number', 'equalto', target_serial) | first).partitions[0].drive_letter }}"
-      when: input_drive_letter == 'auto'
+        assigned_drive_letter: "{{ (updated_disk_results.ansible_facts.disks | selectattr('number', 'equalto', target_disk_number | int) | first).partitions[0].drive_letter }}"
+      when: input_drive_letter == 'auto'  
 
     - name: Set final drive letter
       set_fact:
         final_drive_letter: "{{ input_drive_letter if input_drive_letter != 'auto' else assigned_drive_letter }}"
-
-    - name: Fail if no drive letter was assigned
-      fail:
-        msg: "Could not determine a drive letter for the new partition."
-      when: final_drive_letter is not defined or not final_drive_letter
-
+        
+    - name: Debug partition info
+      ansible.builtin.debug:
+        msg: "The final_drive_letter: {{ final_drive_letter }}"  
+        
     - name: Format the volume
       community.windows.win_format:
         drive_letter: "{{ final_drive_letter }}"
