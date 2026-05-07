@@ -10,7 +10,6 @@
       set_fact:
         target_disk_number: "{{ item.number }}"
       loop: "{{ ansible_facts.disks }}"
-      when: item.serial_number == target_serial
       when: 
         - item.serial_number == target_serial
         - item.partition_style == 'RAW'
