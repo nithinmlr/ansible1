@@ -17,7 +17,7 @@
 
     - name: Fail if disk serial not found
       fail:
-        msg: "Disk with serial {{ target_serial }} was not found on this host."
+        msg: "Disk with serial {{ target_serial }} was not found or is not in RAW state."
       when: target_disk_number is not defined
 
     - name: Initialize disk with GPT
