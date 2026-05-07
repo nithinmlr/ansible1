@@ -36,7 +36,7 @@
       
     - name: Debug partition info
       ansible.builtin.debug:
-        var: partition_info
+        msg: "The partition data is: {{ partition_info }}"
         
     - name: Format the volume
       community.windows.win_format:
