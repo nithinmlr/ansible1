@@ -2,8 +2,6 @@
 - name: Initialize and Format Windows Disk by Serial
   hosts: all
   gather_facts: false
-  vars:
-    input_drive_letter: "auto"
   tasks:
     - name: Gather disk facts
       community.windows.win_disk_facts:
