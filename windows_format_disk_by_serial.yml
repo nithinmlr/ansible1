@@ -2,6 +2,8 @@
 - name: Initialize and Format Windows Disk by Serial
   hosts: all
   gather_facts: false
+  vars:
+    input_drive_letter: "auto"
   tasks:
     - name: Gather disk facts
       community.windows.win_disk_facts:
@@ -29,7 +31,7 @@
     - name: Create partition using full disk
       community.windows.win_partition:
         disk_number: "{{ target_disk_number }}"
-        drive_letter: "{{ (input_drive_letter == '') | ternary('auto', input_drive_letter) }}"
+        drive_letter: "{{ input_drive_letter }}"
         partition_size: -1
         state: present
 
