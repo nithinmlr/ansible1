@@ -34,7 +34,27 @@
         partition_size: -1
         state: present
       register: partition_info
+      
+    - name: Re-gather disk facts to get the assigned drive letter
+      community.windows.win_disk_facts:
+      register: updated_disk_results
 
+       
+    - name: Extract assigned drive letter
+      set_fact:
+        assigned_drive_letter: "{{ item.drive_letter }}"
+      loop: "{{ ansible_facts.disks | selectattr('serial_number', 'equalto', target_serial) | map(attribute='partitions') | first | default([]) }}"
+      when: 
+        - item.serial_number == target_serial
+        - input_drive_letter == 'auto'
+
+    - name: Set final drive letter
+      set_fact:
+        final_drive_letter: "{{ input_drive_letter if input_drive_letter != 'auto' else assigned_drive_letter }}"
+        
+    - name: Debug partition info
+      ansible.builtin.debug:
+        msg: "The final_drive_letter {{ target_serial }}: {{ final_drive_letter }}"  
     
     - name: Format the volume
       community.windows.win_format:
