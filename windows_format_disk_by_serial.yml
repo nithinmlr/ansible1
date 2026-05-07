@@ -32,10 +32,12 @@
         drive_letter: "{{ input_drive_letter | default('auto') }}"
         partition_size: -1
         state: present
-      register: partition_info  
+      register: partition_info
+      
     - name: Debug partition info
       ansible.builtin.debug:
         var: partition_info
+        
     - name: Format the volume
       community.windows.win_format:
         drive_letter: "{{ input_drive_letter | default(partition_info.drive_letter) }}"
