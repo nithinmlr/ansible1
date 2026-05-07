@@ -29,7 +29,7 @@
     - name: Create partition using full disk
       community.windows.win_partition:
         disk_number: "{{ target_disk_number }}"
-        drive_letter: "{{ input_drive_letter if input_drive_letter else 'auto' }}"
+        drive_letter: "{{ (input_drive_letter == '') | ternary('auto', input_drive_letter) }}"
         partition_size: -1
         state: present
 
