@@ -51,7 +51,7 @@
         
     - name: Debug partition info
       ansible.builtin.debug:
-        msg: "The final_drive_letter: {{ final_drive_letter }}"  
+        msg: "The final_drive_letter {{ target_serial }}: {{ final_drive_letter }}"  
         
     - name: Format the volume
       community.windows.win_format:
