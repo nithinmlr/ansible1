@@ -42,7 +42,7 @@
       
     - name: Extract assigned drive letter
       set_fact:
-        assigned_drive_letter: "{{ (ansible_disks | selectattr('serial_number', 'equalto', target_serial ) | first).partitions[0].drive_letter }}"
+        assigned_drive_letter: "{{ (ansible_facts.disks | selectattr('serial_number', 'equalto', target_serial ) | first).partitions[0].drive_letter }}"
       when: input_drive_letter == 'auto'  
 
     - name: Set final drive letter
