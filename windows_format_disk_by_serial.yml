@@ -38,7 +38,13 @@
     - name: Re-gather disk facts to get the assigned drive letter
       community.windows.win_disk_facts:
       register: updated_disk_results
+      when: input_drive_letter == 'auto'
       
+    - name: Debug partition info
+      ansible.builtin.debug:
+        msg: "Full Disk Facts for Serial {{ target_serial }}: {{ updated_disk_results.ansible_facts.disks }}" 
+        when: input_drive_letter == 'auto'
+        
     - name: Extract assigned drive letter
       set_fact:
         assigned_drive_letter: "{{ (updated_disk_results.ansible_facts.disks | selectattr('number', 'equalto', target_disk_number | int) | first).partitions[0].drive_letter }}"
