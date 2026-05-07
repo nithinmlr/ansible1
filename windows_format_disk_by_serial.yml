@@ -1,68 +1,40 @@
 ---
-- name: Format Disk by Serial Number (Windows AWX)
+- name: Initialize and Format Windows Disk by Serial
   hosts: all
   gather_facts: false
   tasks:
-
-    - name: Validate required input
-      ansible.builtin.fail:
-        msg: "target_serial must be provided via AWX survey or extra_vars."
-      when: target_serial | length == 0
-
     - name: Gather disk facts
-      ansible.windows.win_disk_facts:
+      community.windows.win_disk_facts:
+      register: disk_results
 
-    - name: Find disk matching serial number
-      ansible.builtin.set_fact:
+    - name: Set disk number based on serial
+      set_fact:
         target_disk_number: "{{ item.number }}"
       loop: "{{ ansible_facts.disks }}"
-      when:
-        - item.serial_number is defined
-        - item.serial_number | trim == target_serial | trim
-        - target_disk_number is not defined
+      when: item.serial_number == target_serial
+      no_log: true
 
-    - name: Fail if serial not found
-      ansible.builtin.fail:
-        msg: "Disk with serial {{ target_serial }} not found."
+    - name: Fail if disk serial not found
+      fail:
+        msg: "Disk with serial {{ target_serial }} was not found on this host."
       when: target_disk_number is not defined
 
-    - name: Ensure disk is online
-      ansible.windows.win_disk:
+    - name: Initialize disk with GPT
+      community.windows.win_initialize_disk:
         disk_number: "{{ target_disk_number }}"
-        state: online
+        style: gpt
+        online: true
 
-    - name: Initialize disk (GPT)
-      ansible.windows.win_disk:
+    - name: Create partition using full disk
+      community.windows.win_partition:
         disk_number: "{{ target_disk_number }}"
-        partition_style: gpt
-
-    - name: Create partition (consume full disk)
-      ansible.windows.win_partition:
-        disk_number: "{{ target_disk_number }}"
-        drive_letter: "{{ input_drive_letter | default(omit) }}"
+        drive_letter: "{{ input_drive_letter }}"
         partition_size: -1
         state: present
-      register: partition_result
 
-    - name: Set drive letter fact
-      ansible.builtin.set_fact:
-        final_drive_letter: >-
-          {{ input_drive_letter if input_drive_letter | length > 0
-             else partition_result.drive_letter }}
-
-    - name: Format partition
-      ansible.windows.win_format:
-        drive_letter: "{{ final_drive_letter }}"
+    - name: Format the volume
+      community.windows.win_format:
+        drive_letter: "{{ input_drive_letter }}"
         file_system: "{{ input_fstype }}"
         new_label: "{{ input_label }}"
         full: false
-
-    - name: Debug summary
-      ansible.builtin.debug:
-        msg:
-          - "Disk Number: {{ target_disk_number }}"
-          - "Drive Letter: {{ final_drive_letter }}"
-          - "Filesystem: {{ input_fstype }}"
-          - "Label: {{ input_label }}"
-          - "Serial: {{ target_serial }}"
-``
