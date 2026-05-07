@@ -3,7 +3,9 @@
   hosts: all
   gather_facts: false
   vars:
-    input_drive_letter: "{{ input_requested_drive_letter | default('auto') }}"
+    # Ensure variables are defined to avoid "undefined" errors
+
+    input_drive_letter: "{{ input_drive_letter | default('auto') }}"
 
   tasks:
     - name: Gather disk facts
@@ -42,7 +44,7 @@
 
     - name: Debug updated disk results for AWX
       ansible.builtin.debug:
-        var: updated_disk_results
+        msg: "Full Disk Facts for Serial {{ target_serial }}: {{ updated_disk_results.ansible_facts.disks }}"
       when: input_drive_letter == 'auto'
 
     - name: Extract assigned drive letter by serial
