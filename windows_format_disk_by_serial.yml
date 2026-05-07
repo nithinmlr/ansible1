@@ -29,13 +29,14 @@
     - name: Create partition using full disk
       community.windows.win_partition:
         disk_number: "{{ target_disk_number }}"
-        drive_letter: auto
+        drive_letter: "{{ input_drive_letter | default(omit) }}"
         partition_size: -1
         state: present
+      register: partition_info  
 
     - name: Format the volume
       community.windows.win_format:
-        drive_letter: "{{ input_drive_letter }}"
+        drive_letter: "{{ input_drive_letter | default(partition_info.drive_letter) }}"
         file_system: "{{ input_fstype }}"
         new_label: "{{ input_label }}"
         full: false
