@@ -15,6 +15,7 @@
       when: 
         - item.serial_number == target_serial
         - item.partition_style == 'RAW'
+      no_log: true  
 
     - name: Fail if disk serial not found
       fail:
@@ -44,7 +45,7 @@
       set_fact:
         assigned_drive_letter: "{{ item.drive_letter }}"
       loop: "{{ (ansible_disks | selectattr('serial_number', 'equalto', target_serial) | first).partitions }}"
-
+      no_log: true
         
     - name: Debug partition info
       ansible.builtin.debug:
