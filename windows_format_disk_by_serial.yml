@@ -42,7 +42,7 @@
       
     - name: Debug partition info
       ansible.builtin.debug:
-        msg: "Full Disk Facts for Serial {{ target_serial }}: {{ updated_disk_results.disks }}" 
+        msg: "Full Disk Facts for Serial {{ target_serial }}: {{ ansible_disks }}" 
         when: input_drive_letter == 'auto'
         
     - name: Extract assigned drive letter
