@@ -59,7 +59,7 @@
     
     - name: Format the volume
       community.windows.win_format:
-        drive_letter: "{{ final_drive_letter }}"
+        disk_number: "{{ target_disk_number }}"
         file_system: "{{ input_fstype }}"
         new_label: "{{ input_label }}"
         full: false
