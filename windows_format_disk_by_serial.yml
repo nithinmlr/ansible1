@@ -1,7 +1,7 @@
 ---
 - name: Initialize and Format Windows Disk by Serial
   hosts: all
-  gather_facts: false
+  gather_facts: true
   vars:
     input_drive_letter: "{{ input_requested_drive_letter | default('auto') }}"
   tasks:
