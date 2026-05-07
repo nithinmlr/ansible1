@@ -12,7 +12,7 @@
       loop: "{{ ansible_facts.disks }}"
       when: 
         - item.serial_number == target_serial
-        - item.partition_style == 'RAW'
+        #- item.partition_style == 'RAW'
       no_log: true
 
     - name: Fail if disk serial not found
