@@ -52,7 +52,7 @@
     
     - name: Format the volume
       community.windows.win_format:
-        drive_letter:: "{{ assigned_drive_letter }}"
+        drive_letter: "{{ assigned_drive_letter }}"
         file_system: "{{ input_fstype }}"
         new_label: "{{ input_label }}"
         full: false
